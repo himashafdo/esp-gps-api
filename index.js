@@ -11,11 +11,11 @@ app.post('/location', async (req, res) => {
   const { lat, lng, motion, device } = req.body;
   console.log(`Received from ${device}:`, lat, lng, motion);
 
-  // Optional: Send to Firebase
-  const firebaseUrl = `https://console.firebase.google.com/u/0/project/magtic/database/magtic-default-rtdb/data/~2F/devices/${device}.json`;
+  // ✅ Correct Firebase Realtime DB REST URL
+  const firebaseUrl = `https://magtic-default-rtdb.firebaseio.com/devices/${device}.json`;
 
   try {
-    await axios.put(firebaseUrl, { lat, lng, motion });
+    await axios.put(firebaseUrl, { lat, lng, motion, timestamp: Date.now() });
     res.json({ status: 'ok' });
   } catch (err) {
     console.error(err.message);
