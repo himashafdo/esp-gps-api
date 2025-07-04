@@ -39,7 +39,7 @@ app.post('/location', async (req, res) => {
     console.log("Writing to Firebase:", payload);
 
     // Write to Firebase Realtime Database
-    await axios.put(firebaseUrl, payload);
+    await axios.patch(firebaseUrl, payload);
 
     // If limit is true (boolean or string), send FCM notification to topic "limit_alert"
     if (limit === true || limit === "true") {
