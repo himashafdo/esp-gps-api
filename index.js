@@ -14,12 +14,16 @@ app.post('/location', async (req, res) => {
   // Log the full incoming request body to debug
   console.log("Full request body:", req.body);
 
-  const { lat, lng, motion, limit } = req.body;
+  // Destructure fields including device (use device, not devices)
+  const { lat, lng, motion, limit, device } = req.body;
 
-  console.log(`📡 Received:`, lat, lng, motion, limit);
+  // Use device field or fallback to "default"
+  const deviceId = device || "default";
 
-  // Always write to /devices/default
-  const firebaseUrl = `https://magtic-default-rtdb.firebaseio.com/devices/default.json`;
+  console.log(`📡 Received from device "${deviceId}": lat=${lat}, lng=${lng}, motion=${motion}, limit=${limit}`);
+
+  // Build Firebase URL dynamically using deviceId
+  const firebaseUrl = `https://magtic-default-rtdb.firebaseio.com/devices/${deviceId}.json`;
 
   try {
     // Prepare the data payload
@@ -37,7 +41,7 @@ app.post('/location', async (req, res) => {
     // Write to Firebase Realtime Database
     await axios.put(firebaseUrl, payload);
 
-    // If limit is true, send FCM notification to topic "limit_alert"
+    // If limit is true (boolean or string), send FCM notification to topic "limit_alert"
     if (limit === true || limit === "true") {
       await axios.post(
         'https://fcm.googleapis.com/fcm/send',
@@ -45,7 +49,7 @@ app.post('/location', async (req, res) => {
           to: '/topics/limit_alert',
           notification: {
             title: 'Limit Triggered!',
-            body: `ESP32 triggered the limit switch.`,
+            body: `ESP32 device "${deviceId}" triggered the limit switch.`,
           },
         },
         {
@@ -55,7 +59,7 @@ app.post('/location', async (req, res) => {
           },
         }
       );
-      console.log(`✅ Push notification sent`);
+      console.log(`✅ Push notification sent for device "${deviceId}"`);
     }
 
     res.json({ status: 'ok' });
